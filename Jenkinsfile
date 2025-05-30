@@ -20,13 +20,11 @@ pipeline {
                     sh 'docker stop my-static-website || true'
                     sh 'docker rm my-static-website || true'
                     
-                    // Build new image
-                    docker.build("my-static-website")
+                    // Build new image (corrected syntax)
+                    sh 'docker build -t my-static-website .'
                     
-                    // Run new container
-                    docker.image("my-static-website").run(
-                        "--name my-static-website -p 8080:82"
-                    )
+                    // Run new container with proper port mapping
+                    sh 'docker run -d --name my-static-website -p 8081:80 my-static-website'
                 }
             }
         }
@@ -38,4 +36,4 @@ pipeline {
             sh 'docker system prune -f' // Optional: clean up unused containers/images
         }
     }
-}
+}d
