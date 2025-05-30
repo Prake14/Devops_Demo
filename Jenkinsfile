@@ -25,7 +25,7 @@ pipeline {
                     
                     // Run new container
                     docker.image("my-static-website").run(
-                        "--name my-static-website -p 8080:80"
+                        "--name my-static-website -p 8080:82"
                     )
                 }
             }
