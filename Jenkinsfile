@@ -1,10 +1,6 @@
 pipeline {
     agent any
     
-    triggers {
-        pollSCM('H/5 * * * *') // Check GitHub every 5 minutes
-    }
-    
     stages {
         stage('Checkout') {
             steps {
@@ -36,4 +32,4 @@ pipeline {
             sh 'docker system prune -f' // Optional: clean up unused containers/images
         }
     }
-}d
+}
