@@ -2,25 +2,18 @@ pipeline {
     agent any
     
     stages {
-        stage('Checkout') {
-            steps {
-                git branch: 'main', 
-                url: 'https://github.com/Prake14/Devops_Demo'
-            }
-        }
-        
-        stage('Build and Run') {
+        stage('Build & Deploy') {
             steps {
                 script {
-                    // Stop and remove any existing container
-                    sh 'docker stop my-static-website || true'
-                    sh 'docker rm my-static-website || true'
+                    // Build from Dockerfile
+                    sh 'docker build -t my-app .'
                     
-                    // Build new image (corrected syntax)
-                    sh 'docker build -t my-static-website .'
+                    // Cleanup old container
+                    sh 'docker stop my-app || true'
+                    sh 'docker rm my-app || true'
                     
-                    // Run new container with proper port mapping
-                    sh 'docker run -d --name my-static-website -p 8081:80 my-static-website'
+                    // Run new container
+                    sh 'docker run -d --name my-app -p 8081:80 my-app'
                 }
             }
         }
@@ -28,8 +21,8 @@ pipeline {
     
     post {
         always {
-            echo 'Cleaning up intermediate containers...'
-            sh 'docker system prune -f' // Optional: clean up unused containers/images
+            echo 'Container status:'
+            sh 'docker ps -a | grep my-app'
         }
     }
 }
