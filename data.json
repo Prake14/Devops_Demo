@@ -22,10 +22,18 @@
       "state": "off",
       "speed": 0
     },
-    "thermostat": {
+    "ac": {
       "state": "off",
       "temperature": 22,
       "mode": "cool"
+    },
+    "kitchen-light": {
+      "state": "off",
+      "brightness": 0
+    },
+    "exhaust-fan": {
+      "state": "off",
+      "speed": 0
     }
   },
   "security": {

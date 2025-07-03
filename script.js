@@ -1,4 +1,4 @@
-// script.js - Ultra Super Home Automation Dashboard
+// script.js - Ultra Super Home Automation Dashboard Controller
 
 // DOM Elements
 const currentTimeElement = document.getElementById('currentTime');
