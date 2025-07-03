@@ -1,4 +1,4 @@
-// script.js - Ultra Super Home Automation Dashboard Controller
+// script.js - Ultra Super Home Automation Dashboard
 
 // DOM Elements
 const currentTimeElement = document.getElementById('currentTime');
@@ -55,10 +55,9 @@ function getDefaultData() {
             weekly: [18.5, 17.8, 19.2, 20.1, 22.3, 24.5, 21.8]
         },
         devices: {
-            spotlight1: { state: "off", brightness: 0 },
-            spotlight2: { state: "off", brightness: 0 },
-            fan: { state: "off", speed: 0 },
-            ac: { state: "off", temperature: 22, mode: "cool" },
+            "main-light": { state: "off", brightness: 0 },
+            "ac": { state: "off", temperature: 22, mode: "cool" },
+            "entertainment": { state: "off" },
             "kitchen-light": { state: "off", brightness: 0 },
             "exhaust-fan": { state: "off", speed: 0 }
         },
@@ -79,10 +78,9 @@ function getDefaultData() {
 
 function initializeDeviceStates() {
     // Set initial states from loaded data
-    setDeviceState('spotlight1', homeData.devices.spotlight1.state, homeData.devices.spotlight1.brightness);
-    setDeviceState('spotlight2', homeData.devices.spotlight2.state, homeData.devices.spotlight2.brightness);
-    setDeviceState('fan', homeData.devices.fan.state, homeData.devices.fan.speed);
-    setDeviceState('ac', homeData.devices.ac.state, homeData.devices.ac.temperature);
+    setDeviceState('main-light', homeData.devices["main-light"].state, homeData.devices["main-light"].brightness);
+    setDeviceState('ac', homeData.devices["ac"].state, homeData.devices["ac"].temperature);
+    setDeviceState('entertainment', homeData.devices["entertainment"].state);
     setDeviceState('kitchen-light', homeData.devices["kitchen-light"].state, homeData.devices["kitchen-light"].brightness);
     setDeviceState('exhaust-fan', homeData.devices["exhaust-fan"].state, homeData.devices["exhaust-fan"].speed);
     
@@ -105,9 +103,11 @@ function setupThemeToggle() {
         if (this.checked) {
             document.body.classList.add('dark-mode');
             localStorage.setItem('theme', 'dark');
+            showNotification('Dark mode activated', 'info');
         } else {
             document.body.classList.remove('dark-mode');
             localStorage.setItem('theme', 'light');
+            showNotification('Light mode activated', 'info');
         }
     });
 }
@@ -131,7 +131,7 @@ function setupRoomSelection() {
             });
             
             currentRoom = roomId;
-            showNotification(`${this.textContent} controls activated`, 'info');
+            showNotification(`${this.querySelector('span').textContent} controls activated`, 'info');
         });
     });
 }
@@ -182,10 +182,12 @@ function updateWeatherDisplay() {
             weatherIcon.className = 'fas fa-sun weather-icon';
     }
     
-    // Animate humidity icon in dark mode
+    // Animate icons based on theme
     if (document.body.classList.contains('dark-mode')) {
-        humidityIcon.style.animation = 'pulse 2s infinite alternate';
+        weatherIcon.style.animation = 'pulse 2s infinite alternate';
+        humidityIcon.style.animation = 'pulse 2s infinite alternate 0.5s';
     } else {
+        weatherIcon.style.animation = 'none';
         humidityIcon.style.animation = 'none';
     }
 }
@@ -254,6 +256,11 @@ function getEnvironmentChartOptions() {
                     label: function(context) {
                         return `${context.dataset.label}: ${context.parsed.y}`;
                     }
+                }
+            },
+            legend: {
+                labels: {
+                    color: 'var(--text-color)'
                 }
             }
         },
@@ -375,7 +382,6 @@ function setupChartControls() {
                 energyChart.data.datasets[0].data = homeData.energy.daily;
                 energyChart.update();
             } else if (this.dataset.range === '7d') {
-                // For demo, just show weekly data
                 energyChart.data.datasets[0].data = homeData.energy.weekly;
                 energyChart.update();
             }
@@ -403,7 +409,7 @@ function setupToggleButtons() {
             const newState = homeData.devices[deviceId].state === 'on' ? 'off' : 'on';
             setDeviceState(deviceId, newState);
             
-            showNotification(`${deviceId} turned ${newState}`, 'success');
+            showNotification(`${deviceId.replace('-', ' ')} turned ${newState}`, 'success');
         });
     });
 }
@@ -428,32 +434,32 @@ function setupBrightnessSliders() {
             }
             
             if (brightness % 25 === 0) {
-                showNotification(`${deviceId} brightness set to ${brightness}%`, 'info');
+                showNotification(`${deviceId.replace('-', ' ')} brightness set to ${brightness}%`, 'info');
             }
         });
     });
 }
 
 function setupFanControls() {
-    const fanSlider = document.getElementById('fan-speed');
+    const fanSlider = document.getElementById('exhaust-fan-speed');
     const fanSpeedDisplay = fanSlider.nextElementSibling;
     const speedLabels = ['Off', 'Low', 'Medium', 'High'];
     
     fanSlider.addEventListener('input', function() {
         const speed = parseInt(this.value);
-        homeData.devices.fan.speed = speed;
+        homeData.devices["exhaust-fan"].speed = speed;
         
         fanSpeedDisplay.textContent = speedLabels[speed];
-        updateDevicePowerUsage('fan');
+        updateDevicePowerUsage('exhaust-fan');
         
         // Auto-toggle based on speed
-        if (speed > 0 && homeData.devices.fan.state === 'off') {
-            setDeviceState('fan', 'on', speed);
-        } else if (speed === 0 && homeData.devices.fan.state === 'on') {
-            setDeviceState('fan', 'off', 0);
+        if (speed > 0 && homeData.devices["exhaust-fan"].state === 'off') {
+            setDeviceState('exhaust-fan', 'on', speed);
+        } else if (speed === 0 && homeData.devices["exhaust-fan"].state === 'on') {
+            setDeviceState('exhaust-fan', 'off', 0);
         }
         
-        showNotification(`Fan speed set to ${speedLabels[speed]}`, 'info');
+        showNotification(`Exhaust fan speed set to ${speedLabels[speed]}`, 'info');
     });
 }
 
@@ -486,9 +492,9 @@ function setDeviceState(deviceId, state, value = null) {
     // Update data model
     homeData.devices[deviceId].state = state;
     if (value !== null) {
-        if (deviceId === 'fan' || deviceId === 'exhaust-fan') {
+        if (deviceId === 'exhaust-fan') {
             homeData.devices[deviceId].speed = value;
-        } else if (deviceId.includes('light') || deviceId.includes('spotlight')) {
+        } else if (deviceId.includes('light')) {
             homeData.devices[deviceId].brightness = value;
         } else if (deviceId === 'ac') {
             homeData.devices[deviceId].temperature = value;
@@ -500,20 +506,20 @@ function setDeviceState(deviceId, state, value = null) {
     statusText.textContent = `Status: ${state.toUpperCase()}`;
     icon.style.color = state === 'on' ? 'var(--accent-color)' : 'var(--primary-color)';
     
-    // Special handling for thermostat/AC
+    // Special handling for AC
     if (deviceId === 'ac') {
         statusText.textContent = `Set to: ${homeData.devices.ac.temperature}°C`;
         document.getElementById('ac-currentTemp').textContent = `${homeData.devices.ac.temperature}°C`;
     }
     
     // Update any sliders
-    if (deviceId.includes('light') || deviceId.includes('spotlight')) {
+    if (deviceId.includes('light')) {
         const slider = document.getElementById(`${deviceId}-brightness`);
         if (slider) {
             slider.value = homeData.devices[deviceId].brightness;
             slider.nextElementSibling.textContent = `${homeData.devices[deviceId].brightness}%`;
         }
-    } else if (deviceId === 'fan' || deviceId === 'exhaust-fan') {
+    } else if (deviceId === 'exhaust-fan') {
         const slider = document.getElementById(`${deviceId}-speed`);
         if (slider) {
             slider.value = homeData.devices[deviceId].speed;
@@ -546,15 +552,17 @@ function updateDevicePowerUsage(deviceId) {
     let power = 0;
     
     if (device.state === 'on') {
-        if (deviceId.includes('light') || deviceId.includes('spotlight')) {
+        if (deviceId.includes('light')) {
             // 60W at full brightness
             power = Math.round((device.brightness / 100) * 60);
-        } else if (deviceId.includes('fan')) {
+        } else if (deviceId === 'exhaust-fan') {
             // 30W per speed level (0-3)
             power = device.speed * 30;
         } else if (deviceId === 'ac') {
             // Fixed power for demo
             power = 500 + (device.temperature < 22 ? 200 : 0);
+        } else if (deviceId === 'entertainment') {
+            power = 150;
         }
     }
     
@@ -570,11 +578,11 @@ function setupSecuritySystem() {
         // In a real app, this would trigger actual security changes
         if (this.value === 'away') {
             // Simulate turning off lights when away
-            if (homeData.devices.spotlight1.state === 'on') {
-                setDeviceState('spotlight1', 'off');
+            if (homeData.devices["main-light"].state === 'on') {
+                setDeviceState('main-light', 'off');
             }
-            if (homeData.devices.spotlight2.state === 'on') {
-                setDeviceState('spotlight2', 'off');
+            if (homeData.devices["kitchen-light"].state === 'on') {
+                setDeviceState('kitchen-light', 'off');
             }
         }
     });
@@ -639,9 +647,4 @@ function showWelcomeNotification() {
     setTimeout(() => {
         showNotification('Welcome to ELECTRONICS Smart Home System', 'success');
     }, 1000);
-}
-
-// Utility Functions
-function getDeviceElement(deviceId) {
-    return document.querySelector(`[data-device="${deviceId}"]`);
 }

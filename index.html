@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>ELECTRONICS Home Automation</title>
+  <title>ELECTRONICS Smart Home</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="style.css" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -11,20 +11,23 @@
   <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-luxon@1.2.0"></script>
 </head>
 <body class="light-mode">
-  <div class="theme-toggle">
-    <i class="fas fa-moon"></i>
-    <label class="switch">
-      <input type="checkbox" id="themeSwitch">
-      <span class="slider round"></span>
-    </label>
-    <i class="fas fa-sun"></i>
+  <div class="theme-toggle-container">
+    <div class="theme-toggle">
+      <i class="fas fa-sun"></i>
+      <label class="switch">
+        <input type="checkbox" id="themeSwitch">
+        <span class="slider round"></span>
+      </label>
+      <i class="fas fa-moon"></i>
+    </div>
   </div>
 
   <div class="dashboard">
     <header>
       <div class="header-top">
         <div class="logo-container">
-          <img src="logo-06-removebg-preview-removebg-preview.png" alt="ELECTRONICS Logo" class="brand-logo">
+          <img src="assets/logo.png" alt="ELECTRONICS Logo" class="brand-logo">
+          <div class="logo-glow"></div>
         </div>
         <div class="system-status">
           <span class="connection-status"><i class="fas fa-wifi"></i> Connected</span>
@@ -46,58 +49,51 @@
 
     <section class="room-selector">
       <div class="room active" data-room="living">
-        <img src="https://i.gifer.com/7VE.gif" class="room-gif" alt="Living Room">
+        <div class="room-image-container">
+          <img src="assets/living-room.jpg" class="room-image" alt="Living Room">
+          <div class="room-overlay"></div>
+        </div>
         <span>Living Room</span>
       </div>
       <div class="room" data-room="kitchen">
-        <img src="https://i.gifer.com/7VE.gif" class="room-gif" alt="Kitchen">
+        <div class="room-image-container">
+          <img src="assets/kitchen.jpg" class="room-image" alt="Kitchen">
+          <div class="room-overlay"></div>
+        </div>
         <span>Kitchen</span>
       </div>
       <div class="room" data-room="bedroom">
-        <img src="https://i.gifer.com/7VE.gif" class="room-gif" alt="Bedroom">
+        <div class="room-image-container">
+          <img src="assets/bedroom.jpg" class="room-image" alt="Bedroom">
+          <div class="room-overlay"></div>
+        </div>
         <span>Bedroom</span>
       </div>
       <div class="room" data-room="dining">
-        <img src="https://i.gifer.com/7VE.gif" class="room-gif" alt="Dining Room">
+        <div class="room-image-container">
+          <img src="assets/dining-room.jpg" class="room-image" alt="Dining Room">
+          <div class="room-overlay"></div>
+        </div>
         <span>Dining Room</span>
       </div>
       <div class="room" data-room="bathroom">
-        <img src="https://i.gifer.com/7VE.gif" class="room-gif" alt="Bathroom">
+        <div class="room-image-container">
+          <img src="assets/bathroom.jpg" class="room-image" alt="Bathroom">
+          <div class="room-overlay"></div>
+        </div>
         <span>Bathroom</span>
       </div>
     </section>
 
     <section class="room-controls">
-      <!-- Living Room Controls (default visible) -->
+      <!-- Living Room Controls -->
       <div class="room-devices active" data-room="living">
-        <div class="device" data-device="spotlight1">
+        <div class="device" data-device="main-light">
           <div class="device-icon"><i class="fas fa-lightbulb"></i></div>
-          <button class="toggle-btn">Spotlight 1</button>
+          <button class="toggle-btn">Main Light</button>
           <div class="device-controls">
-            <input type="range" min="0" max="100" value="0" class="brightness-slider" id="spotlight1-brightness">
+            <input type="range" min="0" max="100" value="0" class="brightness-slider" id="main-light-brightness">
             <span class="brightness-value">0%</span>
-          </div>
-          <span class="status">Status: OFF</span>
-          <div class="energy-usage">Power: <span>0W</span></div>
-        </div>
-
-        <div class="device" data-device="spotlight2">
-          <div class="device-icon"><i class="fas fa-lightbulb"></i></div>
-          <button class="toggle-btn">Spotlight 2</button>
-          <div class="device-controls">
-            <input type="range" min="0" max="100" value="0" class="brightness-slider" id="spotlight2-brightness">
-            <span class="brightness-value">0%</span>
-          </div>
-          <span class="status">Status: OFF</span>
-          <div class="energy-usage">Power: <span>0W</span></div>
-        </div>
-
-        <div class="device" data-device="fan">
-          <div class="device-icon"><i class="fas fa-fan"></i></div>
-          <button class="toggle-btn">Ceiling Fan</button>
-          <div class="device-controls">
-            <input type="range" min="0" max="3" value="0" class="speed-slider" id="fan-speed">
-            <span class="speed-value">Off</span>
           </div>
           <span class="status">Status: OFF</span>
           <div class="energy-usage">Power: <span>0W</span></div>
@@ -105,7 +101,7 @@
 
         <div class="device" data-device="ac">
           <div class="device-icon"><i class="fas fa-snowflake"></i></div>
-          <button class="toggle-btn">AC</button>
+          <button class="toggle-btn">Air Conditioner</button>
           <div class="device-controls">
             <button class="temp-adjust" id="ac-temp-down"><i class="fas fa-minus"></i></button>
             <span class="current-temp" id="ac-currentTemp">22°C</span>
@@ -114,13 +110,20 @@
           <span class="status">Status: OFF</span>
           <div class="energy-usage">Mode: <span>Cooling</span></div>
         </div>
+
+        <div class="device" data-device="entertainment">
+          <div class="device-icon"><i class="fas fa-tv"></i></div>
+          <button class="toggle-btn">Entertainment System</button>
+          <span class="status">Status: OFF</span>
+          <div class="energy-usage">Power: <span>0W</span></div>
+        </div>
       </div>
 
-      <!-- Kitchen Controls (hidden by default) -->
+      <!-- Kitchen Controls -->
       <div class="room-devices" data-room="kitchen">
         <div class="device" data-device="kitchen-light">
           <div class="device-icon"><i class="fas fa-lightbulb"></i></div>
-          <button class="toggle-btn">Main Light</button>
+          <button class="toggle-btn">Kitchen Light</button>
           <div class="device-controls">
             <input type="range" min="0" max="100" value="0" class="brightness-slider" id="kitchen-light-brightness">
             <span class="brightness-value">0%</span>
@@ -144,7 +147,7 @@
       <!-- Other room controls would go here -->
     </section>
 
-    <section class="widgets-container">
+    <section class="dashboard-widgets">
       <div class="widget">
         <div class="widget-header">
           <h3><i class="fas fa-chart-line"></i> Room Environment</h3>
@@ -153,7 +156,9 @@
             <button class="chart-range-btn" data-range="7d">7d</button>
           </div>
         </div>
-        <canvas id="environmentChart"></canvas>
+        <div class="chart-container">
+          <canvas id="environmentChart"></canvas>
+        </div>
       </div>
 
       <div class="widget">
@@ -164,7 +169,9 @@
             <button class="chart-range-btn" data-range="7d">7d</button>
           </div>
         </div>
-        <canvas id="energyChart"></canvas>
+        <div class="chart-container">
+          <canvas id="energyChart"></canvas>
+        </div>
       </div>
     </section>
 

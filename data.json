@@ -6,26 +6,20 @@
   },
   "energy": {
     "daily": [2.1, 2.3, 2.0, 2.4, 3.1, 4.2, 3.8],
-    "weekly": [18.5, 17.8, 19.2, 20.1, 22.3, 24.5, 21.8],
-    "monthly": [95, 92, 88, 85, 90, 105, 110, 115, 108, 102]
+    "weekly": [18.5, 17.8, 19.2, 20.1, 22.3, 24.5, 21.8]
   },
   "devices": {
-    "spotlight1": {
+    "main-light": {
       "state": "off",
       "brightness": 0
-    },
-    "spotlight2": {
-      "state": "off",
-      "brightness": 0
-    },
-    "fan": {
-      "state": "off",
-      "speed": 0
     },
     "ac": {
       "state": "off",
       "temperature": 22,
       "mode": "cool"
+    },
+    "entertainment": {
+      "state": "off"
     },
     "kitchen-light": {
       "state": "off",
