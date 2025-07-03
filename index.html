@@ -1,16 +1,42 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Home Automation Dashboard</title>
+  <link rel="stylesheet" href="style.css" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
-  <h1>🏠 Home Automation Dashboard</h1>
-  <h2>Demo of DevOps</h2>
-  <h3>let it will be sucess</h3>
-  <h4> hello</h4>
-  <h3>machi it works</h3>
-  <canvas id="temperatureChart"></canvas>
+  <div class="dashboard">
+    <header>
+      <h1>🏠 Lumi Home Automation</h1>
+      <p class="subtitle">Welcome to your smart home control panel</p>
+    </header>
+
+    <section class="controls">
+      <div class="device" data-device="spotlight1">
+        <button class="toggle-btn">Spotlight 1</button>
+        <span class="status">Status: OFF</span>
+      </div>
+
+      <div class="device" data-device="spotlight2">
+        <button class="toggle-btn">Spotlight 2</button>
+        <span class="status">Status: OFF</span>
+      </div>
+
+      <div class="device" data-device="fan">
+        <button class="toggle-btn">Fan</button>
+        <span class="status">Status: OFF</span>
+      </div>
+    </section>
+
+    <section class="chart-section">
+      <h2>Room Temperature Chart</h2>
+      <canvas id="temperatureChart"></canvas>
+    </section>
+  </div>
+
   <script src="script.js"></script>
 </body>
 </html>
