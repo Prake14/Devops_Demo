@@ -50,7 +50,7 @@ body {
   
   .toggle-btn.active {
     background-color: #4caf50;
-    color: white;
+    color: rgb(41, 89, 154);
     transform: scale(1.05);
   }
   
