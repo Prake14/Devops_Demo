@@ -3,18 +3,29 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Lumi Home Automation Dashboard</title>
+  <title>ELECTRONICS Home Automation</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="style.css" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/luxon@3.0.1"></script>
   <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-luxon@1.2.0"></script>
 </head>
-<body>
+<body class="light-mode">
+  <div class="theme-toggle">
+    <i class="fas fa-moon"></i>
+    <label class="switch">
+      <input type="checkbox" id="themeSwitch">
+      <span class="slider round"></span>
+    </label>
+    <i class="fas fa-sun"></i>
+  </div>
+
   <div class="dashboard">
     <header>
       <div class="header-top">
-        <h1><i class="fas fa-home"></i> Lumi Home Automation</h1>
+        <div class="logo-container">
+          <img src="logo-06-removebg-preview-removebg-preview.png" alt="ELECTRONICS Logo" class="brand-logo">
+        </div>
         <div class="system-status">
           <span class="connection-status"><i class="fas fa-wifi"></i> Connected</span>
           <span class="current-time" id="currentTime"></span>
@@ -23,74 +34,137 @@
       <p class="subtitle">Welcome to your smart home control panel</p>
       <div class="weather-widget">
         <div class="weather-info">
-          <i class="fas fa-sun"></i>
+          <i class="fas fa-sun weather-icon"></i>
           <span>Outside: <span id="outsideTemp">24°C</span></span>
         </div>
         <div class="weather-info">
-          <i class="fas fa-tint"></i>
+          <i class="fas fa-tint humidity-icon"></i>
           <span>Humidity: <span id="outsideHumidity">45%</span></span>
         </div>
       </div>
     </header>
 
-    <section class="controls">
-      <div class="device" data-device="spotlight1">
-        <div class="device-icon"><i class="fas fa-lightbulb"></i></div>
-        <button class="toggle-btn">Spotlight 1</button>
-        <div class="device-controls">
-          <input type="range" min="0" max="100" value="0" class="brightness-slider" id="spotlight1-brightness">
-          <span class="brightness-value">0%</span>
-        </div>
-        <span class="status">Status: OFF</span>
-        <div class="energy-usage">Power: <span>0W</span></div>
+    <section class="room-selector">
+      <div class="room active" data-room="living">
+        <img src="https://i.gifer.com/7VE.gif" class="room-gif" alt="Living Room">
+        <span>Living Room</span>
       </div>
-
-      <div class="device" data-device="spotlight2">
-        <div class="device-icon"><i class="fas fa-lightbulb"></i></div>
-        <button class="toggle-btn">Spotlight 2</button>
-        <div class="device-controls">
-          <input type="range" min="0" max="100" value="0" class="brightness-slider" id="spotlight2-brightness">
-          <span class="brightness-value">0%</span>
-        </div>
-        <span class="status">Status: OFF</span>
-        <div class="energy-usage">Power: <span>0W</span></div>
+      <div class="room" data-room="kitchen">
+        <img src="https://i.gifer.com/7VE.gif" class="room-gif" alt="Kitchen">
+        <span>Kitchen</span>
       </div>
-
-      <div class="device" data-device="fan">
-        <div class="device-icon"><i class="fas fa-fan"></i></div>
-        <button class="toggle-btn">Ceiling Fan</button>
-        <div class="device-controls">
-          <input type="range" min="0" max="3" value="0" class="speed-slider" id="fan-speed">
-          <span class="speed-value">Off</span>
-        </div>
-        <span class="status">Status: OFF</span>
-        <div class="energy-usage">Power: <span>0W</span></div>
+      <div class="room" data-room="bedroom">
+        <img src="https://i.gifer.com/7VE.gif" class="room-gif" alt="Bedroom">
+        <span>Bedroom</span>
       </div>
-
-      <div class="device" data-device="thermostat">
-        <div class="device-icon"><i class="fas fa-thermometer-half"></i></div>
-        <button class="toggle-btn">Thermostat</button>
-        <div class="device-controls">
-          <button class="temp-adjust" id="temp-down"><i class="fas fa-minus"></i></button>
-          <span class="current-temp" id="currentTemp">22°C</span>
-          <button class="temp-adjust" id="temp-up"><i class="fas fa-plus"></i></button>
-        </div>
-        <span class="status">Status: OFF</span>
-        <div class="energy-usage">Mode: <span>Cooling</span></div>
+      <div class="room" data-room="dining">
+        <img src="https://i.gifer.com/7VE.gif" class="room-gif" alt="Dining Room">
+        <span>Dining Room</span>
+      </div>
+      <div class="room" data-room="bathroom">
+        <img src="https://i.gifer.com/7VE.gif" class="room-gif" alt="Bathroom">
+        <span>Bathroom</span>
       </div>
     </section>
 
-    <section class="chart-section">
-      <div class="chart-container">
-        <div class="chart-header">
-          <h2><i class="fas fa-chart-line"></i> Room Environment</h2>
+    <section class="room-controls">
+      <!-- Living Room Controls (default visible) -->
+      <div class="room-devices active" data-room="living">
+        <div class="device" data-device="spotlight1">
+          <div class="device-icon"><i class="fas fa-lightbulb"></i></div>
+          <button class="toggle-btn">Spotlight 1</button>
+          <div class="device-controls">
+            <input type="range" min="0" max="100" value="0" class="brightness-slider" id="spotlight1-brightness">
+            <span class="brightness-value">0%</span>
+          </div>
+          <span class="status">Status: OFF</span>
+          <div class="energy-usage">Power: <span>0W</span></div>
+        </div>
+
+        <div class="device" data-device="spotlight2">
+          <div class="device-icon"><i class="fas fa-lightbulb"></i></div>
+          <button class="toggle-btn">Spotlight 2</button>
+          <div class="device-controls">
+            <input type="range" min="0" max="100" value="0" class="brightness-slider" id="spotlight2-brightness">
+            <span class="brightness-value">0%</span>
+          </div>
+          <span class="status">Status: OFF</span>
+          <div class="energy-usage">Power: <span>0W</span></div>
+        </div>
+
+        <div class="device" data-device="fan">
+          <div class="device-icon"><i class="fas fa-fan"></i></div>
+          <button class="toggle-btn">Ceiling Fan</button>
+          <div class="device-controls">
+            <input type="range" min="0" max="3" value="0" class="speed-slider" id="fan-speed">
+            <span class="speed-value">Off</span>
+          </div>
+          <span class="status">Status: OFF</span>
+          <div class="energy-usage">Power: <span>0W</span></div>
+        </div>
+
+        <div class="device" data-device="ac">
+          <div class="device-icon"><i class="fas fa-snowflake"></i></div>
+          <button class="toggle-btn">AC</button>
+          <div class="device-controls">
+            <button class="temp-adjust" id="ac-temp-down"><i class="fas fa-minus"></i></button>
+            <span class="current-temp" id="ac-currentTemp">22°C</span>
+            <button class="temp-adjust" id="ac-temp-up"><i class="fas fa-plus"></i></button>
+          </div>
+          <span class="status">Status: OFF</span>
+          <div class="energy-usage">Mode: <span>Cooling</span></div>
+        </div>
+      </div>
+
+      <!-- Kitchen Controls (hidden by default) -->
+      <div class="room-devices" data-room="kitchen">
+        <div class="device" data-device="kitchen-light">
+          <div class="device-icon"><i class="fas fa-lightbulb"></i></div>
+          <button class="toggle-btn">Main Light</button>
+          <div class="device-controls">
+            <input type="range" min="0" max="100" value="0" class="brightness-slider" id="kitchen-light-brightness">
+            <span class="brightness-value">0%</span>
+          </div>
+          <span class="status">Status: OFF</span>
+          <div class="energy-usage">Power: <span>0W</span></div>
+        </div>
+
+        <div class="device" data-device="exhaust-fan">
+          <div class="device-icon"><i class="fas fa-fan"></i></div>
+          <button class="toggle-btn">Exhaust Fan</button>
+          <div class="device-controls">
+            <input type="range" min="0" max="3" value="0" class="speed-slider" id="exhaust-fan-speed">
+            <span class="speed-value">Off</span>
+          </div>
+          <span class="status">Status: OFF</span>
+          <div class="energy-usage">Power: <span>0W</span></div>
+        </div>
+      </div>
+
+      <!-- Other room controls would go here -->
+    </section>
+
+    <section class="widgets-container">
+      <div class="widget">
+        <div class="widget-header">
+          <h3><i class="fas fa-chart-line"></i> Room Environment</h3>
           <div class="chart-controls">
             <button class="chart-range-btn active" data-range="24h">24h</button>
             <button class="chart-range-btn" data-range="7d">7d</button>
-            <button class="chart-range-btn" data-range="30d">30d</button>
           </div>
         </div>
         <canvas id="environmentChart"></canvas>
+      </div>
+
+      <div class="widget">
+        <div class="widget-header">
+          <h3><i class="fas fa-bolt"></i> Energy Consumption</h3>
+          <div class="chart-controls">
+            <button class="chart-range-btn active" data-range="24h">24h</button>
+            <button class="chart-range-btn" data-range="7d">7d</button>
+          </div>
+        </div>
+        <canvas id="energyChart"></canvas>
       </div>
     </section>
 
@@ -117,25 +191,6 @@
           </div>
         </div>
       </div>
-    </section>
-
-    <section class="energy-section">
-      <h2><i class="fas fa-bolt"></i> Energy Consumption</h2>
-      <div class="energy-metrics">
-        <div class="energy-metric">
-          <div class="metric-value">1.2 <span>kWh</span></div>
-          <div class="metric-label">Today</div>
-        </div>
-        <div class="energy-metric">
-          <div class="metric-value">8.7 <span>kWh</span></div>
-          <div class="metric-label">This Week</div>
-        </div>
-        <div class="energy-metric">
-          <div class="metric-value">35.4 <span>kWh</span></div>
-          <div class="metric-label">This Month</div>
-        </div>
-      </div>
-      <canvas id="energyChart"></canvas>
     </section>
   </div>
 

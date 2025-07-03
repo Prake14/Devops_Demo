@@ -1,15 +1,19 @@
-// script.js - Home Automation Dashboard Controller
+// script.js - Ultra Super Home Automation Dashboard
 
 // DOM Elements
 const currentTimeElement = document.getElementById('currentTime');
 const outsideTempElement = document.getElementById('outsideTemp');
 const outsideHumidityElement = document.getElementById('outsideHumidity');
+const themeSwitch = document.getElementById('themeSwitch');
 const notificationsContainer = document.getElementById('notifications');
+const roomElements = document.querySelectorAll('.room');
+const roomDeviceSections = document.querySelectorAll('.room-devices');
 
 // Global Variables
 let environmentChart;
 let energyChart;
 let homeData = {};
+let currentRoom = 'living';
 
 // Initialize Application
 document.addEventListener('DOMContentLoaded', async function() {
@@ -20,6 +24,8 @@ document.addEventListener('DOMContentLoaded', async function() {
     initializeEnergyChart();
     setupDeviceControls();
     setupSecuritySystem();
+    setupThemeToggle();
+    setupRoomSelection();
     simulateSensorEvents();
     showWelcomeNotification();
 });
@@ -29,15 +35,10 @@ async function loadHomeData() {
     try {
         const response = await fetch('data.json');
         homeData = await response.json();
-        
-        // Initialize device states from loaded data
         initializeDeviceStates();
-        
     } catch (error) {
         console.error('Error loading home data:', error);
         showNotification('Failed to load home data', 'error');
-        
-        // Fallback to default data
         homeData = getDefaultData();
     }
 }
@@ -51,14 +52,15 @@ function getDefaultData() {
         },
         energy: {
             daily: [2.1, 2.3, 2.0, 2.4, 3.1, 4.2, 3.8],
-            weekly: [18.5, 17.8, 19.2, 20.1, 22.3, 24.5, 21.8],
-            monthly: [95, 92, 88, 85, 90, 105, 110, 115, 108, 102]
+            weekly: [18.5, 17.8, 19.2, 20.1, 22.3, 24.5, 21.8]
         },
         devices: {
             spotlight1: { state: "off", brightness: 0 },
             spotlight2: { state: "off", brightness: 0 },
             fan: { state: "off", speed: 0 },
-            thermostat: { state: "off", temperature: 22, mode: "cool" }
+            ac: { state: "off", temperature: 22, mode: "cool" },
+            "kitchen-light": { state: "off", brightness: 0 },
+            "exhaust-fan": { state: "off", speed: 0 }
         },
         security: {
             mode: "off",
@@ -80,10 +82,58 @@ function initializeDeviceStates() {
     setDeviceState('spotlight1', homeData.devices.spotlight1.state, homeData.devices.spotlight1.brightness);
     setDeviceState('spotlight2', homeData.devices.spotlight2.state, homeData.devices.spotlight2.brightness);
     setDeviceState('fan', homeData.devices.fan.state, homeData.devices.fan.speed);
-    setThermostatState(homeData.devices.thermostat.state, homeData.devices.thermostat.temperature);
+    setDeviceState('ac', homeData.devices.ac.state, homeData.devices.ac.temperature);
+    setDeviceState('kitchen-light', homeData.devices["kitchen-light"].state, homeData.devices["kitchen-light"].brightness);
+    setDeviceState('exhaust-fan', homeData.devices["exhaust-fan"].state, homeData.devices["exhaust-fan"].speed);
     
     // Set security mode
     document.getElementById('securityMode').value = homeData.security.mode;
+}
+
+// Theme Toggle
+function setupThemeToggle() {
+    // Check for saved theme preference or use preferred color scheme
+    const savedTheme = localStorage.getItem('theme');
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    
+    if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
+        document.body.classList.add('dark-mode');
+        themeSwitch.checked = true;
+    }
+    
+    themeSwitch.addEventListener('change', function() {
+        if (this.checked) {
+            document.body.classList.add('dark-mode');
+            localStorage.setItem('theme', 'dark');
+        } else {
+            document.body.classList.remove('dark-mode');
+            localStorage.setItem('theme', 'light');
+        }
+    });
+}
+
+// Room Selection
+function setupRoomSelection() {
+    roomElements.forEach(room => {
+        room.addEventListener('click', function() {
+            const roomId = this.dataset.room;
+            
+            // Update active room in UI
+            roomElements.forEach(r => r.classList.remove('active'));
+            this.classList.add('active');
+            
+            // Update active room devices
+            roomDeviceSections.forEach(section => {
+                section.classList.remove('active');
+                if (section.dataset.room === roomId) {
+                    section.classList.add('active');
+                }
+            });
+            
+            currentRoom = roomId;
+            showNotification(`${this.textContent} controls activated`, 'info');
+        });
+    });
 }
 
 // Clock Functionality
@@ -115,12 +165,28 @@ function updateWeatherDisplay() {
     outsideTempElement.textContent = `${homeData.weather.temperature}°C`;
     outsideHumidityElement.textContent = `${homeData.weather.humidity}%`;
     
-    const weatherIcon = document.querySelector('.weather-info i');
+    const weatherIcon = document.querySelector('.weather-icon');
+    const humidityIcon = document.querySelector('.humidity-icon');
+    
     switch(homeData.weather.conditions) {
-        case 'sunny': weatherIcon.className = 'fas fa-sun'; break;
-        case 'cloudy': weatherIcon.className = 'fas fa-cloud'; break;
-        case 'rainy': weatherIcon.className = 'fas fa-cloud-rain'; break;
-        default: weatherIcon.className = 'fas fa-sun';
+        case 'sunny': 
+            weatherIcon.className = 'fas fa-sun weather-icon';
+            break;
+        case 'cloudy': 
+            weatherIcon.className = 'fas fa-cloud weather-icon';
+            break;
+        case 'rainy': 
+            weatherIcon.className = 'fas fa-cloud-rain weather-icon';
+            break;
+        default: 
+            weatherIcon.className = 'fas fa-sun weather-icon';
+    }
+    
+    // Animate humidity icon in dark mode
+    if (document.body.classList.contains('dark-mode')) {
+        humidityIcon.style.animation = 'pulse 2s infinite alternate';
+    } else {
+        humidityIcon.style.animation = 'none';
     }
 }
 
@@ -132,6 +198,12 @@ function updateWeatherData() {
     // Keep within reasonable bounds
     homeData.weather.temperature = Math.max(15, Math.min(35, homeData.weather.temperature));
     homeData.weather.humidity = Math.max(30, Math.min(80, homeData.weather.humidity));
+    
+    // Randomly change conditions
+    const conditions = ['sunny', 'cloudy', 'rainy'];
+    if (Math.random() > 0.9) {
+        homeData.weather.conditions = conditions[Math.floor(Math.random() * conditions.length)];
+    }
     
     updateWeatherDisplay();
 }
@@ -174,6 +246,7 @@ function initializeEnvironmentChart() {
 function getEnvironmentChartOptions() {
     return {
         responsive: true,
+        maintainAspectRatio: false,
         interaction: { mode: 'index', intersect: false },
         plugins: {
             tooltip: {
@@ -185,19 +258,47 @@ function getEnvironmentChartOptions() {
             }
         },
         scales: {
-            x: { grid: { display: false } },
+            x: { 
+                grid: { 
+                    display: false,
+                    color: 'rgba(0, 0, 0, 0.1)'
+                },
+                ticks: {
+                    color: 'var(--text-color)'
+                }
+            },
             y: {
                 type: 'linear',
                 display: true,
                 position: 'left',
-                title: { display: true, text: 'Temperature (°C)' }
+                title: { 
+                    display: true, 
+                    text: 'Temperature (°C)',
+                    color: 'var(--text-color)'
+                },
+                ticks: {
+                    color: 'var(--text-color)'
+                },
+                grid: {
+                    color: 'var(--border-color)'
+                }
             },
             y1: {
                 type: 'linear',
                 display: true,
                 position: 'right',
-                grid: { drawOnChartArea: false },
-                title: { display: true, text: 'Humidity (%)' },
+                grid: { 
+                    drawOnChartArea: false,
+                    color: 'var(--border-color)'
+                },
+                title: { 
+                    display: true, 
+                    text: 'Humidity (%)',
+                    color: 'var(--text-color)'
+                },
+                ticks: {
+                    color: 'var(--text-color)'
+                },
                 min: 0,
                 max: 100
             }
@@ -222,12 +323,35 @@ function initializeEnergyChart() {
         },
         options: {
             responsive: true,
+            maintainAspectRatio: false,
             scales: {
                 y: {
                     beginAtZero: true,
                     title: {
                         display: true,
-                        text: 'kWh'
+                        text: 'kWh',
+                        color: 'var(--text-color)'
+                    },
+                    ticks: {
+                        color: 'var(--text-color)'
+                    },
+                    grid: {
+                        color: 'var(--border-color)'
+                    }
+                },
+                x: {
+                    ticks: {
+                        color: 'var(--text-color)'
+                    },
+                    grid: {
+                        color: 'var(--border-color)'
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    labels: {
+                        color: 'var(--text-color)'
                     }
                 }
             }
@@ -241,18 +365,22 @@ function setupChartControls() {
             document.querySelectorAll('.chart-range-btn').forEach(b => b.classList.remove('active'));
             this.classList.add('active');
             
-            // In a real app, this would fetch new data based on the time range
-            showNotification(`Showing data for last ${this.dataset.range}`, 'info');
-            
-            // Simulate data change
-            if (this.dataset.range === '7d') {
+            // Update chart data based on range
+            if (this.dataset.range === '24h') {
+                environmentChart.data.labels = homeData.environment.timestamps;
+                environmentChart.data.datasets[0].data = homeData.environment.temperatures;
+                environmentChart.data.datasets[1].data = homeData.environment.humidities;
+                environmentChart.update();
+                
+                energyChart.data.datasets[0].data = homeData.energy.daily;
+                energyChart.update();
+            } else if (this.dataset.range === '7d') {
+                // For demo, just show weekly data
                 energyChart.data.datasets[0].data = homeData.energy.weekly;
                 energyChart.update();
-            } else if (this.dataset.range === '30d') {
-                // For demo, just show monthly data (first 7 days)
-                energyChart.data.datasets[0].data = homeData.energy.monthly.slice(0, 7);
-                energyChart.update();
             }
+            
+            showNotification(`Showing ${this.dataset.range} data`, 'info');
         });
     });
 }
@@ -330,25 +458,27 @@ function setupFanControls() {
 }
 
 function setupThermostatControls() {
-    document.getElementById('temp-up').addEventListener('click', function() {
-        const currentTemp = homeData.devices.thermostat.temperature;
+    document.getElementById('ac-temp-up').addEventListener('click', function() {
+        const currentTemp = homeData.devices.ac.temperature;
         if (currentTemp < 30) {
-            setThermostatState(homeData.devices.thermostat.state, currentTemp + 1);
-            showNotification(`Temperature set to ${currentTemp + 1}°C`, 'info');
+            setDeviceState('ac', homeData.devices.ac.state, currentTemp + 1);
+            showNotification(`AC temperature set to ${currentTemp + 1}°C`, 'info');
         }
     });
     
-    document.getElementById('temp-down').addEventListener('click', function() {
-        const currentTemp = homeData.devices.thermostat.temperature;
+    document.getElementById('ac-temp-down').addEventListener('click', function() {
+        const currentTemp = homeData.devices.ac.temperature;
         if (currentTemp > 16) {
-            setThermostatState(homeData.devices.thermostat.state, currentTemp - 1);
-            showNotification(`Temperature set to ${currentTemp - 1}°C`, 'info');
+            setDeviceState('ac', homeData.devices.ac.state, currentTemp - 1);
+            showNotification(`AC temperature set to ${currentTemp - 1}°C`, 'info');
         }
     });
 }
 
 function setDeviceState(deviceId, state, value = null) {
     const deviceElement = document.querySelector(`[data-device="${deviceId}"]`);
+    if (!deviceElement) return;
+    
     const button = deviceElement.querySelector('.toggle-btn');
     const statusText = deviceElement.querySelector('.status');
     const icon = deviceElement.querySelector('.device-icon i');
@@ -356,78 +486,75 @@ function setDeviceState(deviceId, state, value = null) {
     // Update data model
     homeData.devices[deviceId].state = state;
     if (value !== null) {
-        if (deviceId === 'fan') {
+        if (deviceId === 'fan' || deviceId === 'exhaust-fan') {
             homeData.devices[deviceId].speed = value;
-        } else if (deviceId.includes('spotlight')) {
+        } else if (deviceId.includes('light') || deviceId.includes('spotlight')) {
             homeData.devices[deviceId].brightness = value;
+        } else if (deviceId === 'ac') {
+            homeData.devices[deviceId].temperature = value;
         }
     }
     
     // Update UI
     button.classList.toggle('active', state === 'on');
     statusText.textContent = `Status: ${state.toUpperCase()}`;
-    icon.style.color = state === 'on' ? '#4caf50' : '#2354b7';
+    icon.style.color = state === 'on' ? 'var(--accent-color)' : 'var(--primary-color)';
     
-    // Special handling for thermostat
-    if (deviceId === 'thermostat') {
-        statusText.textContent = `Set to: ${homeData.devices.thermostat.temperature}°C`;
+    // Special handling for thermostat/AC
+    if (deviceId === 'ac') {
+        statusText.textContent = `Set to: ${homeData.devices.ac.temperature}°C`;
+        document.getElementById('ac-currentTemp').textContent = `${homeData.devices.ac.temperature}°C`;
     }
     
     // Update any sliders
-    if (deviceId.includes('spotlight')) {
+    if (deviceId.includes('light') || deviceId.includes('spotlight')) {
         const slider = document.getElementById(`${deviceId}-brightness`);
         if (slider) {
             slider.value = homeData.devices[deviceId].brightness;
             slider.nextElementSibling.textContent = `${homeData.devices[deviceId].brightness}%`;
         }
-    } else if (deviceId === 'fan') {
-        const slider = document.getElementById('fan-speed');
+    } else if (deviceId === 'fan' || deviceId === 'exhaust-fan') {
+        const slider = document.getElementById(`${deviceId}-speed`);
         if (slider) {
-            slider.value = homeData.devices.fan.speed;
+            slider.value = homeData.devices[deviceId].speed;
+            if (slider.nextElementSibling) {
+                const speedLabels = ['Off', 'Low', 'Medium', 'High'];
+                slider.nextElementSibling.textContent = speedLabels[homeData.devices[deviceId].speed];
+            }
         }
     }
     
     updateDevicePowerUsage(deviceId);
-}
-
-function setThermostatState(state, temperature) {
-    homeData.devices.thermostat.state = state;
-    homeData.devices.thermostat.temperature = temperature;
     
-    const deviceElement = document.querySelector('[data-device="thermostat"]');
-    const button = deviceElement.querySelector('.toggle-btn');
-    const statusText = deviceElement.querySelector('.status');
-    const tempDisplay = document.getElementById('currentTemp');
-    const icon = deviceElement.querySelector('.device-icon i');
-    
-    button.classList.toggle('active', state === 'on');
-    tempDisplay.textContent = `${temperature}°C`;
-    statusText.textContent = `Set to: ${temperature}°C`;
-    icon.style.color = state === 'on' ? '#4caf50' : '#2354b7';
+    // Add animation when turning on
+    if (state === 'on') {
+        icon.classList.add('device-on-animation');
+        setTimeout(() => {
+            icon.classList.remove('device-on-animation');
+        }, 1000);
+    }
 }
 
 function updateDevicePowerUsage(deviceId) {
     const device = homeData.devices[deviceId];
     const deviceElement = document.querySelector(`[data-device="${deviceId}"]`);
+    if (!deviceElement) return;
+    
     const powerElement = deviceElement.querySelector('.energy-usage span');
+    if (!powerElement) return;
     
     let power = 0;
     
     if (device.state === 'on') {
-        switch(deviceId) {
-            case 'spotlight1':
-            case 'spotlight2':
-                // 60W at full brightness
-                power = Math.round((device.brightness / 100) * 60);
-                break;
-            case 'fan':
-                // 30W per speed level (0-3)
-                power = device.speed * 30;
-                break;
-            case 'thermostat':
-                // Fixed power for demo
-                power = 500;
-                break;
+        if (deviceId.includes('light') || deviceId.includes('spotlight')) {
+            // 60W at full brightness
+            power = Math.round((device.brightness / 100) * 60);
+        } else if (deviceId.includes('fan')) {
+            // 30W per speed level (0-3)
+            power = device.speed * 30;
+        } else if (deviceId === 'ac') {
+            // Fixed power for demo
+            power = 500 + (device.temperature < 22 ? 200 : 0);
         }
     }
     
@@ -439,6 +566,17 @@ function setupSecuritySystem() {
     document.getElementById('securityMode').addEventListener('change', function() {
         homeData.security.mode = this.value;
         showNotification(`Security system set to ${this.value} mode`, 'warning');
+        
+        // In a real app, this would trigger actual security changes
+        if (this.value === 'away') {
+            // Simulate turning off lights when away
+            if (homeData.devices.spotlight1.state === 'on') {
+                setDeviceState('spotlight1', 'off');
+            }
+            if (homeData.devices.spotlight2.state === 'on') {
+                setDeviceState('spotlight2', 'off');
+            }
+        }
     });
 }
 
@@ -479,11 +617,27 @@ function simulateSensorEvents() {
             showNotification('Front door opened', 'warning');
         }
     }, 45000);
+    
+    // Simulate periodic temperature changes
+    setInterval(() => {
+        // Random small temperature fluctuation
+        const change = (Math.random() * 0.4 - 0.2);
+        homeData.environment.temperatures = homeData.environment.temperatures.map(t => {
+            const newTemp = t + change;
+            return Math.max(18, Math.min(32, newTemp));
+        });
+        
+        // Update chart if visible
+        if (environmentChart) {
+            environmentChart.data.datasets[0].data = homeData.environment.temperatures;
+            environmentChart.update();
+        }
+    }, 30000);
 }
 
 function showWelcomeNotification() {
     setTimeout(() => {
-        showNotification('Welcome back to your smart home dashboard!', 'success');
+        showNotification('Welcome to ELECTRONICS Smart Home System', 'success');
     }, 1000);
 }
 
